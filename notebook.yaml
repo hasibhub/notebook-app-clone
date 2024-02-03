@@ -1,0 +1,791 @@
+openapi: 3.0.0
+info:
+    title: Notebook app API
+    description: '## Notebook app API testing Specification'
+    contact:
+        name: API support
+        url: support@notebook.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 0.0.1
+servers:
+    - url: http://localhost:4400/api/v1
+      description: Notebook API testing in local host
+tags:
+    - name: Auth
+      description: Authentication endpoints(Public)
+    - name: Note
+      description: Note endpoints (Privet)
+    - name: User
+      description: User endpoints(Some routes are Admin only)
+paths:
+    /auth/register:
+        post:
+            tags: [Auth]
+            summary: Create a new account in the app
+            requestBody:
+                content:
+                    'application/json':
+                        schema:
+                            properties:
+                                name:
+                                    type: string
+                                    description: User name
+                                    example: 'Hasib'
+                                email:
+                                    type: string
+                                    description: User email
+                                    format: email
+                                password:
+                                    type: string
+                                    format: password
+                                    description: User password
+                                    example: '********'
+                            required: [name, email, password]
+            responses:
+                '201':
+                    description: Create a new user
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    code:
+                                        type: integer
+                                        format: int32
+                                        example: 201
+                                    message:
+                                        type: string
+                                        example: User created successfully
+                                    token:
+                                        type: string
+                                        format: jwt
+                                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                                    link:
+                                        type: object
+                                        properties:
+                                            self:
+                                                type: string
+                                                example: /register
+                                            login:
+                                                type: string
+                                                example: /login
+                '400':
+                    $ref: '#/components/responses/400'
+                '409':
+                    $ref: '#/components/responses/409'
+                '500':
+                    $ref: '#/components/responses/500'
+    /auth/login:
+        post:
+            tags: [Auth]
+            summary: Login Account using user credentials
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            properties:
+                                email:
+                                    type: string
+                                    format: email
+                                password:
+                                    type: string
+                                    format: password
+                                    example: '******'
+                            required:
+                              - email
+                              - password
+            responses:
+                '200':
+                    description: Login User
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    code:
+                                        type: integer
+                                        format: int32
+                                        example: 200
+                                    message:
+                                        type: string
+                                        example: User login successfully
+                                    token:
+                                        type: string
+                                        format: jwt
+                                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                                    link:
+                                        type: object
+                                        properties:
+                                            self:
+                                                type: string
+                                                example: /register
+                                            login:
+                                                type: string
+                                                example: /login
+                '400':
+                  $ref: '#/components/responses/400'
+                '404':
+                  $ref: '#/components/responses/404'
+                '500':
+                  $ref: '#/components/responses/500'
+    /notebook:
+      post: 
+        security:
+          - bearerAuth: []
+        requestBody:
+          description: Create a note
+          content:
+            application/json:
+              schema:
+                properties:
+                  title:
+                    type: string
+                    example: 'This is the note title'
+                  body: 
+                    type: string
+                    example: 'This is the note body main text'
+                  label:
+                    type: string
+                    enum:
+                      - normal
+                      - Important
+                      - Very important
+                    default: 'normal'
+                required:
+                  - title
+                  - body
+        tags: [Note]
+        summary: Create a new note
+        responses:
+          '201':
+            description: create a new note note 
+            content:
+              application/json: 
+                schema: 
+                  properties:
+                    code:
+                      type: integer
+                      format: int32
+                      example: 201
+                    message: 
+                      type: string
+                      example: Note created successfully
+                    note: 
+                      type: object
+                      properties:
+                        title: 
+                          type: string
+                          example: Note title
+                        body: 
+                          type: string
+                          example: Hello this is the note body 
+                        label:
+                          type: string
+                          example: normal
+                        owner:
+                          type: string
+                          example: 'lfaldfaf69a8dsf68sdfg86sdf86'
+          '400':
+            $ref: '#/components/responses/400'
+          '500':
+            $ref: '#/components/responses/500'
+          '401':
+            $ref: '#/components/responses/401'
+      get:
+        security:
+         - bearerAuth: []
+        summary: Get all notes
+        tags: [Note]
+        parameters:
+          - $ref: '#/components/parameters/page'
+          - $ref: '#/components/parameters/limit'
+          - $ref: '#/components/parameters/sort_type'
+          - $ref: '#/components/parameters/sort_by'
+          - $ref: '#/components/parameters/search'
+        responses:
+          '200': 
+            description: Get all notes 
+            content:
+              application/json:
+                schema: 
+                  type: object 
+                  properties:
+                    notes:
+                       $ref: '#/components/schemas/noteDTO'                                                   
+                    pagination:
+                      type: object
+                      $ref: '#/components/schemas/pagination'
+                    links:
+                      $ref: '#/components/schemas/links'
+          '400': 
+            $ref: '#/components/responses/400'
+          '500': 
+            $ref: '#/components/responses/500'
+    /notebook/:{id}:
+      get:
+        security:
+          - bearerAuth: []
+        summary: Get a single note using ID parameter
+        tags: [Note]
+        parameters:
+          - in: path
+            name: id
+            schema: 
+              type: string 
+              example: 1
+            required: true
+            
+        responses:
+          '200':
+            description: Get a single note using ID parameter
+            content:
+              application/json:
+                schema:
+                  description: Get a single note using ID parameter
+                  properties:
+                    data:
+                      type: object 
+                      properties:
+                        id: 
+                          type: string 
+                          example: aldffoel5adfg6f5asd66
+                        title:
+                          type: string 
+                          example: Note title 
+                        body: 
+                          type: string 
+                          example: A note body main text 
+                        owner:
+                          type: string 
+                          example: ladfhl5g5dfa6sdf56dfg4 
+                        label:
+                          type: string
+                          example: normal 
+                    link:  
+                      type: object 
+                      properties:
+                        self: 
+                          type: string
+                          example: '/lasdkfldkf6df876fd'
+          '404':
+            $ref: '#/components/responses/404'
+          '500':
+            $ref: '#/components/responses/500'
+      put:
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path 
+            name: id
+            schema:
+              type: string
+              example: 1 
+            required: true              
+        
+        summary: Update note using put request 
+        tags:
+          - "Note"
+        requestBody:
+          description: Request body to update notes
+          content:
+            application/json:
+              schema: 
+                properties:
+                  title: 
+                    type: string 
+                    example: note title 
+                  body: 
+                    type: string 
+                    example: note body main text. 
+                  label: 
+                    type: string 
+                    example: normal 
+        responses:
+          '200':
+            description: Update note using put request.
+            content:
+              application/json: 
+                schema: 
+                  properties:
+                    message: 
+                      type: string 
+                      example: note updated 
+                    code: 
+                      type: integer 
+                      format: int32
+                      example: 200
+                    note:
+                      $ref: '#/components/schemas/noteDTO'
+          '400': 
+            $ref: '#/components/responses/400'
+          '404':
+            $ref: '#/components/responses/404'
+          '500': 
+            $ref: '#/components/responses/500'
+      delete:
+        security:
+          - bearerAuth: [] 
+        tags:
+          - "Note"
+        summary: Delete note by id 
+        parameters:
+          - in: path 
+            name: id 
+            schema: 
+              type: string 
+              example: 1 
+            required: true
+        responses:
+          '204':
+            description: Delete the specified resource
+            content:
+              application/json: 
+                schema: 
+                  properties:
+                    code: 
+                      type: integer
+                      example: 204
+                    message: 
+                      type: string 
+                      example: Note deleted
+          '400':
+            $ref: '#components/responses/400'
+          '500':
+            $ref: '#components/responses/500'
+    /notebook/users:
+      post: 
+        security:
+          - bearerAuth: []
+        tags: [User]
+        summary: Create a new user (Only Admin)
+        requestBody:
+          description: Create a new user by Admin 
+          content:
+            application/json:
+              schema: 
+                properties:
+                  name: 
+                    type: string 
+                    example: 'Hasib'
+                  email: 
+                    type: string 
+                    format: email 
+                  password: 
+                    format: password 
+                    example: 'user.password' 
+                  role: 
+                    type: string
+                    enum:
+                      - user 
+                      - admin 
+                    default: user 
+                required: [name,email,password]
+        responses:
+          201: 
+            description: Created successfully 
+            content:
+              application/json:
+                schema: 
+                  properties:
+                    code: 
+                      type: integer
+                      format: int32 
+                      example: 201
+                    message: 
+                      type: string  
+                      example: User created successfully 
+                    link: 
+                      $ref: '#components/schemas/link'
+          400: 
+            $ref: '#/components/responses/400'
+          401: 
+            $ref: '#/components/responses/401'
+          403: 
+            $ref: '#/components/responses/403'
+          409: 
+            $ref: '#/components/responses/409'
+      get: 
+        security:
+          - bearerAuth: []
+        summary: Get all user list (Admin only)
+        tags: [User]
+        parameters:
+          - $ref: '#/components/parameters/page'
+          - $ref: '#/components/parameters/limit'
+          - $ref: '#/components/parameters/sort_type'
+          - $ref: '#/components/parameters/sort_by'
+          - $ref: '#/components/parameters/search'
+        responses:
+          '200':
+            description: Get all users from the database 
+            content:
+              application/json:
+                schema: 
+                  type: object
+                  properties:
+                    message: 
+                      type: string
+                      example: All users 
+                    users: 
+                      type: array
+                      items: 
+                         $ref: '#/components/schemas/userDTO'
+                    pagination:
+                      $ref: '#/components/schemas/pagination'              
+          '400':
+            $ref: '#/components/responses/400'
+          '500': 
+            $ref: '#/components/responses/500'
+    /users/:{id}:
+      get: 
+        security:
+          - bearerAuth: []
+        summary: Get a single user 
+        tags:
+          - User
+        parameters:
+          - in: path 
+            name: id 
+            schema: 
+              type: string 
+            example: 1
+            required: true
+        responses:
+          '200':
+            description: Get a single user using user ID
+            content:
+              application/json:
+                schema: 
+                  properties:
+                    code: 
+                      type: integer
+                      format: int32 
+                      example: 200
+                    user: 
+                      allOf:
+                        - $ref: '#/components/schemas/userDTO'
+                        - type: object 
+                          properties:
+                            notes: 
+                              type: array 
+                              items:
+                                 $ref: '#/components/schemas/noteDTO'
+                        
+                    link: 
+                      allOf:
+                        - $ref: '#/components/schemas/link'
+                        - type: object
+                          properties:
+                            notes: 
+                              type: string
+                              example: /notebook/notes   
+          '400':
+            $ref: '#/components/responses/400'
+          '404': 
+            $ref: '#/components/responses/404'
+          '500':
+            $ref: '#/components/responses/500'
+      put:
+        security:
+          - bearerAuth: []
+        tags: [User]
+        summary: Update user account 
+        parameters:
+          - in: path
+            name: id 
+            schema: 
+              type: string 
+            required: true
+        requestBody:
+          description: Updated properties for user account
+          content:
+            application/json: 
+              schema:   
+                properties:
+                  name: 
+                    type: string  
+                    example: hasib 
+                  email: 
+                    type: string 
+                    format: email 
+                  role: 
+                    type: string 
+                    enum:
+                      - user 
+                      - admin 
+                    default: user 
+        responses:
+          200: 
+            description: Update user 
+            content:
+              application/json: 
+                schema: 
+                  properties:
+                    code: 
+                      type: integer 
+                      format: int32 
+                      example: 200
+                    message:
+                      type: string 
+                      example: User updated successfully
+                    user: 
+                      $ref: '#/components/schemas/userDTO'
+          400: 
+            $ref: '#/components/responses/400'
+          '404': 
+            $ref: '#/components/responses/404'
+          500: 
+            $ref: '#/components/responses/500'
+      delete: 
+        security:
+          - bearerAuth: []
+        tags:
+          - User
+        summary: Delete an user 
+        parameters:
+          - in: path
+            name: id 
+            schema:
+              type: string 
+              example: 1 
+            required: true
+        responses:
+          204: 
+            description: Delete an existing user
+            content:
+              application/json: 
+                schema: 
+                  properties:
+                    code: 
+                      type: integer
+                      format: int32 
+                      example: 204  
+                    message:
+                      type: string
+                      example: User deleted successfully
+          400: 
+            $ref: '#/components/responses/400'
+          404: 
+            $ref: '#/components/responses/404'
+          500: 
+            $ref: '#/components/responses/500'
+        
+
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+    responses:
+        '400':
+            description: Bad request error
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 400
+                            message:
+                                type: string
+                                example: Bad request
+        '404':
+            description: Resource Not Found
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 404
+                            message:
+                                type: string
+                                example: Resource Not Found!
+        '409':
+            description: Conflict
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 409
+                            message:
+                                type: string
+                                example: User Already Exist.
+        '500':
+            description: Internal Server Error
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 500
+                            message:
+                                type: string
+                                example: Internal Server Error
+        '401':
+            description: Unauthorized
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 401
+                            message:
+                                type: string
+                                example: Unauthorized
+        '403':
+            description: Forbidden
+            content:
+                'application/json':
+                    schema:
+                        properties:
+                            code:
+                                type: integer
+                                format: int32
+                                example: 401
+                            message:
+                                type: string
+                                example: Permission denied.
+    parameters:
+      page:
+        in: query
+        name: page
+        description: Current page number
+        schema: 
+          type: integer
+          format: int32
+          example: 1
+      limit:
+        in: query
+        name: limit
+        description: How many items to return in a given page
+        schema: 
+          type: integer
+          format: int32
+          example: 10
+      sort_type:
+        in: query
+        name: sort_type 
+        description:  Sorting order
+        schema: 
+          type: string
+          enum:
+            - desc
+            - asc 
+          default: desc 
+      sort_by:
+        in: query
+        name: sort_by 
+        description: Sorting parameters for a given items.
+        schema: 
+          type: string 
+          example: updatedAt 
+      search: 
+        in: query
+        name: search 
+        description: Search 
+        schema: 
+          type: string
+          example: ''
+    schemas:
+      noteDTO:
+        type: object
+        properties:
+          id: 
+            type: string 
+            example: aldffoel5adfg6f5asd66
+          title:
+            type: string 
+            example: Note title 
+          body: 
+            type: string 
+            example: A note body main text 
+          owner:
+            $ref: '#/components/schemas/owner'
+          label:
+            type: string
+            example: normal 
+      userDTO:
+        type: object
+        properties:
+          id: 
+            type: string 
+            example: aldffoel5adfg6f5asd66
+          name:
+            type: string 
+            example: hasib
+          email: 
+            type: string 
+            format: email
+          role:
+            type: string
+            example: user
+      link:  
+        type: object 
+        properties:
+          self: 
+            type: string
+            example: '/lasdkfldkf6df876fd'
+      pagination:
+        description: pagination for notes 
+        type: object 
+        properties:
+          page: 
+            type: integer 
+            format: int32
+            example: 2
+          limit: 
+            type: integer 
+            format: int32 
+            example: 10 
+          next_page: 
+            type: integer 
+            format: int32 
+            example: 3
+          prev_page:
+            type: integer 
+            format: int32 
+            example: 1 
+          total_page:
+            type: integer 
+            format: int32
+            example: 1
+          total_notes:
+            type: integer 
+            format: int32 
+            example: 5
+      owner:
+        type: object
+        properties:
+          id: 
+            type: string
+            example: ownerId 
+          name:
+            type: string
+            example: owner name
+      links: 
+        type: object 
+        properties:
+          self: 
+            type: string
+            example: /id 
+          next_page:
+            type: string
+            example: 3 
+          prev_page: 
+            type: string 
+            example: 1 
+          author: 
+            type: string
+            example: /author id
+      

@@ -1,0 +1,102 @@
+POST https://notebook-iz7l.onrender.com/api/v1/auth/register
+Content-Type: application/json
+{ 
+  "name":"mamun",
+  "email":"mamun@gmail.com",
+  "password":"123456"
+}
+
+### 
+//Login user with password
+POST http://localhost:4400/api/v1/auth/login
+Content-Type: application/json 
+
+{
+  "email":"hasib@gmail.com",
+  "password":"123456"
+}
+
+### 
+//Create new note
+POST http://localhost:4400/api/v1/notebook
+Content-Type: application/json 
+Authorization: Bearer 
+
+{
+  "title":"first Note title by hasib",
+  "body":"first note body by hasib",
+  "label":"important"
+}
+###
+//get all notes by owner
+GET http://localhost:4400/api/v1/notebook?page=1&limit=10&sort_type=asc&sort_by=updatedAt
+Content-Type: application/json 
+Authorization: Bearer 
+
+###
+# get single note by owner 
+GET http://localhost:4400/api/v1/notebook/65b13a6b33c3223fe02731d2
+Content-Type: application/json 
+Authorization: Bearer 
+
+###
+//update note by owner
+PUT  http://localhost:4400/api/v1/notebook/65b13af6742259f34469b54d
+Content-Type: application/json 
+Authorization: Bearer 
+
+{
+  "title":"first Note updated title by hasib",
+  "body":"first note body by hasib",
+  "label":"important"
+}
+
+###
+//delete note by owner
+DELETE http://localhost:4400/api/v1/notebook/65b13b00742259f34469b550
+Content-Type: application/json 
+Authorization: Bearer 
+
+//User routes starting
+###
+# create a new user by admin 
+POST http://localhost:4400/api/v1/users
+Authorization: Bearer 
+Content-Type: application/json
+
+{
+  "name":"mamun",
+  "email":"mamun@gmail.com",
+  "password":"123456",
+  "role":"user"
+}
+###
+# get all user by admin 
+GET http://localhost:4400/api/v1/users?limit=10&page=1
+Content-Type: application/json
+Authorization: Bearer 
+
+###
+# get single user by admin
+GET http://localhost:4400/api/v1/users/65b13abe742259f34469b547
+Authorization: Bearer 
+
+###
+# Update role by admin
+PUT http://localhost:4400/api/v1/users/65b3faadac815599ee7d0b09
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+  "role":"admin"
+}
+
+###
+# delte user by admin 
+DELETE http://localhost:4400/api/v1/users/65b13abe742259f34469b547
+Authorization: Bearer 
+
+
+
+
+
